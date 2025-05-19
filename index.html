@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Escritor Multiverso</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background-color: #121212;
+      color: #e0e0e0;
+    }
+    #controls {
+      display: flex;
+      padding: 10px;
+      background-color: #1f1f1f;
+      gap: 10px;
+      align-items: center;
+    }
+    select, button, input {
+      padding: 8px;
+      background-color: #2a2a2a;
+      border: 1px solid #444;
+      color: #e0e0e0;
+      font-size: 14px;
+    }
+    textarea {
+      width: 100vw;
+      height: calc(100vh - 50px);
+      padding: 20px;
+      box-sizing: border-box;
+      border: none;
+      resize: none;
+      outline: none;
+      font-size: 16px;
+      line-height: 1.5;
+      background-color: #1e1e1e;
+      color: #e0e0e0;
+      caret-color: #00ffcc;
+    }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <label for="pageSelector">Página:</label>
+    <select id="pageSelector"></select>
+    <input type="text" id="newPageName" placeholder="Nombre nueva página">
+    <button onclick="createNewPage()">+ Nueva página</button>
+  </div>
+
+  <textarea id="infiniteWriter" placeholder="Empieza a escribir... esta es tu página infinita."></textarea>
+
+  <script>
+    const textarea = document.getElementById('infiniteWriter');
+    const pageSelector = document.getElementById('pageSelector');
+    const newPageNameInput = document.getElementById('newPageName');
+
+    let currentPage = '';
+
+    function loadPages() {
+      const pages = JSON.parse(localStorage.getItem('listaPaginas')) || [];
+      pageSelector.innerHTML = '';
+      pages.forEach(page => {
+        const option = document.createElement('option');
+        option.value = page;
+        option.textContent = page;
+        pageSelector.appendChild(option);
+      });
+      if (pages.length > 0) {
+        currentPage = pages[0];
+        pageSelector.value = currentPage;
+        loadPage(currentPage);
+      }
+    }
+
+    function loadPage(name) {
+      currentPage = name;
+      textarea.value = localStorage.getItem('pagina_' + name) || '';
+    }
+
+    function createNewPage() {
+      const name = newPageNameInput.value.trim();
+      if (!name) return alert("Ponle un nombre a tu nueva página, poeta sin título.");
+      const pages = JSON.parse(localStorage.getItem('listaPaginas')) || [];
+      if (pages.includes(name)) return alert("Ya existe una página con ese nombre. ¡Originalidad, por favor!");
+      pages.unshift(name); // al principio de la lista
+      localStorage.setItem('listaPaginas', JSON.stringify(pages));
+      localStorage.setItem('pagina_' + name, '');
+      newPageNameInput.value = '';
+      loadPages();
+    }
+
+    pageSelector.addEventListener('change', () => {
+      const selected = pageSelector.value;
+      localStorage.setItem('pagina_' + currentPage, textarea.value); // guardar la actual antes de cambiar
+      loadPage(selected);
+    });
+
+    textarea.addEventListener('input', () => {
+      if (currentPage) {
+        localStorage.setItem('pagina_' + currentPage, textarea.value);
+      }
+    });
+
+    loadPages();
+  </script>
+</body>
+</html>
